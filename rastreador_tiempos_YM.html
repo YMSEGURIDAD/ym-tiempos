@@ -146,6 +146,11 @@ svg.icon{width:16px;height:16px;vertical-align:middle;stroke:currentColor;fill:n
       <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       CSV
     </button>
+    <button class="btn" onclick="document.getElementById('import-csv-input').click()">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Importar
+    </button>
+    <input type="file" id="import-csv-input" accept=".csv" style="display:none" onchange="importCSV(event)"/>
     <button class="btn go" onclick="exportPDF()">
       <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       PDF
@@ -171,10 +176,7 @@ svg.icon{width:16px;height:16px;vertical-align:middle;stroke:currentColor;fill:n
   <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
     <input type="text" id="new-act" placeholder="Nueva actividad..." style="flex:1;min-width:160px" onkeydown="if(event.key==='Enter')addAct()"/>
     <select id="new-act-area" style="width:170px"></select>
-    <select id="new-cat" style="width:170px">
-      <option value="administrativa">Administrativa</option>
-      <option value="propia">Propia del cargo</option>
-    </select>
+    <select id="new-cat" style="width:170px"></select>
     <button class="btn go" onclick="addAct()">+ Agregar</button>
   </div>
 </div>
@@ -197,11 +199,7 @@ svg.icon{width:16px;height:16px;vertical-align:middle;stroke:currentColor;fill:n
   <div class="card" id="reporte-barra" style="margin-bottom:16px"></div>
   <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
     <select id="fp" onchange="renderReporte()" style="width:180px"><option value="all">Todas las personas</option></select>
-    <select id="fc" onchange="renderReporte()" style="width:180px">
-      <option value="all">Todas las categorías</option>
-      <option value="administrativa">Solo administrativas</option>
-      <option value="propia">Solo propias del cargo</option>
-    </select>
+    <select id="fc" onchange="renderReporte()" style="width:180px"></select>
   </div>
   <div class="card" style="margin-bottom:16px">
     <div style="font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px">Top actividades por tiempo</div>
@@ -238,10 +236,7 @@ svg.icon{width:16px;height:16px;vertical-align:middle;stroke:currentColor;fill:n
     <div id="admin-act-list"></div>
     <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
       <input type="text" id="admin-new-act" placeholder="Nueva actividad..." style="flex:1;min-width:160px" onkeydown="if(event.key==='Enter')addAdminAct()"/>
-      <select id="admin-new-cat" style="width:170px">
-        <option value="propia">Propia del cargo</option>
-        <option value="administrativa">Administrativa</option>
-      </select>
+      <select id="admin-new-cat" style="width:170px"></select>
       <button class="btn go" onclick="addAdminAct()">+ Agregar</button>
     </div>
   </div>
@@ -257,6 +252,11 @@ svg.icon{width:16px;height:16px;vertical-align:middle;stroke:currentColor;fill:n
 
 <!-- EQUIPO -->
 <div id="tab-equipo" class="sec">
+  <div class="card">
+    <div class="section-title">Categorías (etiquetas)</div>
+    <div id="cats-list" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:4px"></div>
+  </div>
+
   <div class="card">
     <div class="section-title">Áreas</div>
     <div id="areas-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px"></div>
@@ -312,19 +312,6 @@ let people=sload('ym_ppl',[
     {n:'Certificados de retenciones',cat:'administrativa',area:'cont'},
     {n:'Cuentas de cobro',cat:'propia',area:'cont'}
   ]},
-  {id:'carolina',name:'Carolina Villada',area:'cont',acts:[
-    {n:'Planillas Garzón/FUCS/Gerardo Arias',cat:'propia',area:'cont'},
-    {n:'Planillas FUCS Universidad/Gratitud II',cat:'propia',area:'cont'},
-    {n:'Recibos de caja',cat:'administrativa',area:'cont'},
-    {n:'Comprobantes de egreso',cat:'administrativa',area:'cont'},
-    {n:'Revisión y gestión de correos',cat:'administrativa',area:'cont'}
-  ]},
-  {id:'cristian',name:'Cristian Aguirre',area:'cont',acts:[
-    {n:'Planillas Garzón/FUCS/Gerardo Arias',cat:'propia',area:'cont'},
-    {n:'Planillas FUCS Universidad/Gratitud II',cat:'propia',area:'cont'},
-    {n:'Comprobantes de egreso',cat:'administrativa',area:'cont'},
-    {n:'Revisión y gestión de correos',cat:'administrativa',area:'cont'}
-  ]},
   {id:'diana',name:'Diana Aguirre',area:'comp',acts:[
     {n:'Solicitud de cotizaciones',cat:'administrativa',area:'comp'},
     {n:'Recepción de cotizaciones',cat:'administrativa',area:'comp'},
@@ -343,15 +330,6 @@ let people=sload('ym_ppl',[
     {n:'Solicitudes varias',cat:'administrativa',area:'cont'},
     {n:'Manejo caja menor',cat:'administrativa',area:'cont'},
     {n:'Manejo contratistas',cat:'propia',area:'cont'}
-  ]},
-  {id:'valeria',name:'Valeria',area:'adm',acts:[
-    {n:'Contratación empleados (documentación)',cat:'propia',area:'adm'},
-    {n:'Afiliaciones',cat:'administrativa',area:'adm'},
-    {n:'Diligenciamiento formularios',cat:'administrativa',area:'adm'},
-    {n:'Entrega de dotaciones',cat:'administrativa',area:'adm'},
-    {n:'Novedades nómina',cat:'propia',area:'adm'},
-    {n:'Consolidado contratos y prórrogas',cat:'propia',area:'adm'},
-    {n:'Re-cobro de incapacidades',cat:'propia',area:'adm'}
   ]}
 ]);
 
@@ -361,6 +339,11 @@ let areas=sload('ym_areas',[
   {id:'adm',name:'Admin/RRHH',color:'#DB2777'}
 ]);
 
+let categories=sload('ym_cats',[
+  {id:'administrativa',name:'Administrativa',color:'#D97706',bg:'#FEF3C7'},
+  {id:'propia',name:'Propia del cargo',color:'#059669',bg:'#D1FAE5'}
+]);
+function saveCats(){ssave('ym_cats',categories)}
 let logs=sload('ym_logs',[]);
 let adminActs=sload('ym_admin_acts',[
   {n:'Realización de APUs',cat:'propia'},
@@ -422,10 +405,23 @@ function renderPtabs(){
 }
 function setCur(id){curPerson=id;renderPtabs();renderActs()}
 
+function catInfo(catId){
+  return categories.find(c=>c.id===catId)||{id:catId,name:catId,color:'#6B7280',bg:'#F3F4F6'};
+}
 function catPill(cat){
-  return cat==='administrativa'
-    ?'<span class="cat-pill cat-adm">Administrativa</span>'
-    :'<span class="cat-pill cat-propia">Propia del cargo</span>';
+  const c=catInfo(cat);
+  return `<span class="cat-pill" style="background:${c.bg};color:${c.color}">${c.name}</span>`;
+}
+function renderCats(){
+  const el=document.getElementById('cats-list');
+  if(!el)return;
+  el.innerHTML=categories.map((c,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:1.5px solid ${c.color}40;border-radius:var(--radius-sm);background:${c.bg}">
+      <span class="cat-pill" style="background:${c.bg};color:${c.color}">${c.name}</span>
+      <input type="text" value="${c.name}" style="width:150px;border-color:${c.color}50" oninput="categories[${i}].name=this.value;saveCats();renderCats()" onclick="event.stopPropagation()"/>
+      <input type="color" value="${c.color}" title="Color del texto" style="width:36px;height:32px;padding:2px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);cursor:pointer" onchange="categories[${i}].color=this.value;categories[${i}].bg=this.value+'18';saveCats();renderCats()" onclick="event.stopPropagation()"/>
+    </div>
+  `).join('');
 }
 
 function areaPill(areaId){
@@ -580,6 +576,12 @@ function renderHistorial(){
   el.innerHTML=`<table class="tbl"><thead><tr><th>Fecha</th><th>Persona</th><th>Categoría</th><th>Actividad</th><th>Inicio</th><th>Duración</th></tr></thead><tbody>${fl.map(l=>`<tr><td>${l.date}</td><td>${l.pname}</td><td>${catPill(l.cat||'administrativa')}</td><td title="${l.act}">${l.act.length>28?l.act.slice(0,28)+'…':l.act}</td><td style="font-family:var(--mono);font-size:12px">${l.start}</td><td style="font-weight:600;font-family:var(--mono);font-size:12px">${fmtMs(l.dur)}</td></tr>`).join('')}</tbody></table>`;
 }
 
+function refreshCatSelectors(){
+  const opts=categories.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  ['new-cat','admin-new-cat'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
+  const fc=document.getElementById('fc');
+  if(fc){const cur=fc.value;fc.innerHTML='<option value="all">Todas las categorías</option>'+categories.map(c=>`<option value="${c.id}">Solo ${c.name.toLowerCase()}</option>`).join('');fc.value=cur;}
+}
 function refreshAreaSelectors(){
   const opts=areas.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
   const npArea=document.getElementById('np-area');
@@ -589,6 +591,8 @@ function refreshAreaSelectors(){
 }
 
 function renderEquipo(){
+  renderCats();
+  refreshCatSelectors();
   const areasEl=document.getElementById('areas-list');
   areasEl.innerHTML=areas.map((a,i)=>`<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;background:${a.color}18;color:${a.color};border:1px solid ${a.color}40">${a.name}<button onclick="delArea(${i})" style="background:none;border:none;cursor:pointer;color:${a.color};padding:0;font-size:14px;line-height:1;margin-left:2px" title="Eliminar área">&times;</button></span>`).join('');
   refreshAreaSelectors();
@@ -681,6 +685,70 @@ function delPerson(idx){
   if(curPerson===p.id)curPerson=people[0]?.id||null;
   editingPerson=null;
   renderEquipo();renderPtabs();renderActs();
+}
+
+function importCSV(event){
+  const file=event.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const text=e.target.result;
+    const lines=text.split('\n').filter(l=>l.trim());
+    if(lines.length<2){alert('El archivo está vacío o no tiene datos.');return}
+    // Detect separator
+    const sep=lines[0].includes('\t')?'\t':',';
+    const headers=lines[0].split(sep).map(h=>h.replace(/^"|"$/g,'').trim().toLowerCase());
+    // Map columns
+    const iDate=headers.findIndex(h=>h.includes('fecha'));
+    const iPerson=headers.findIndex(h=>h.includes('persona'));
+    const iArea=headers.findIndex(h=>h.includes('área')||h.includes('area'));
+    const iCat=headers.findIndex(h=>h.includes('categor'));
+    const iAct=headers.findIndex(h=>h.includes('actividad'));
+    const iStart=headers.findIndex(h=>h.includes('inicio'));
+    const iMin=headers.findIndex(h=>h.includes('minuto')||h.includes('min'));
+    if(iDate<0||iPerson<0||iAct<0){
+      alert('El archivo no tiene el formato correcto. Asegúrate de exportarlo desde esta herramienta.');
+      return;
+    }
+    let added=0,skipped=0;
+    for(let i=1;i<lines.length;i++){
+      const cols=lines[i].split(sep).map(c=>c.replace(/^"|"$/g,'').trim());
+      if(cols.length<3)continue;
+      const date=cols[iDate]||'';
+      const pname=cols[iPerson]||'';
+      const areaName=iArea>=0?cols[iArea]:'';
+      const cat=iCat>=0?cols[iCat]:'administrativa';
+      const act=iAct>=0?cols[iAct]:'';
+      const start=iStart>=0?cols[iStart]:'';
+      const mins=iMin>=0?parseFloat(cols[iMin])||0:0;
+      if(!act||!pname)continue;
+      // Find person id
+      const p=people.find(x=>x.name===pname||x.name.split(' ')[0]===pname.split(' ')[0]);
+      const pid=p?p.id:'unknown';
+      // Find area id
+      const aObj=areas.find(a=>a.name===areaName);
+      const areaId=aObj?aObj.id:(p?p.area:'cont');
+      // Skip duplicates (same person, activity, date, start time)
+      const isDup=logs.some(l=>l.pid===pid&&l.act===act&&l.date===date&&l.start===start);
+      if(isDup){skipped++;continue;}
+      logs.push({pid,pname,area:areaId,act,cat,date,start,dur:Math.round(mins*60000)});
+      added++;
+    }
+    saveLogs();
+    event.target.value='';
+    // Show result
+    const msg=`✅ Importación completada:\n• ${added} registros nuevos agregados\n• ${skipped} registros duplicados omitidos`;
+    alert(msg);
+    // Refresh current view
+    const activeTab=document.querySelector('.sec.on');
+    if(activeTab){
+      if(activeTab.id==='tab-registrar')renderActs();
+      else if(activeTab.id==='tab-historial')renderHistorial();
+      else if(activeTab.id==='tab-reporte')renderReporte();
+      else if(activeTab.id==='tab-alertas')renderAlertas();
+    }
+  };
+  reader.readAsText(file,'UTF-8');
 }
 
 function exportCSV(){
@@ -917,6 +985,7 @@ function renderAdminResumen(){
 renderPtabs();
 renderActs();
 refreshAreaSelectors();
+refreshCatSelectors();
 renderLoginButtons();
 </script>
 </body>
