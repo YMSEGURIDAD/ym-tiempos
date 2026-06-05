@@ -186,7 +186,7 @@ svg.icon{width:16px;height:16px;vertical-align:middle;stroke:currentColor;fill:n
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
     <span style="font-size:13px;color:var(--gray-500)">Umbral de alerta (horas/día)</span>
     <div style="display:flex;align-items:center;gap:8px">
-      <input type="number" id="threshold" value="7" min="1" max="12" style="width:64px" onchange="renderAlertas()"/>
+      <input type="number" id="threshold" value="8" min="1" max="12" style="width:64px" onchange="renderAlertas()"/>
       <span style="font-size:12px;color:var(--gray-500)">h/día</span>
     </div>
   </div>
@@ -340,7 +340,7 @@ let areas=sload('ym_areas',[
 ]);
 
 let categories=sload('ym_cats',[
-  {id:'administrativa',name:'Administrativa',color:'#D97706',bg:'#FEF3C7'},
+  {id:'administrativa',name:'RRHS-GS',color:'#D97706',bg:'#FEF3C7'},
   {id:'propia',name:'Propia del cargo',color:'#059669',bg:'#D1FAE5'}
 ]);
 function saveCats(){ssave('ym_cats',categories)}
@@ -514,7 +514,7 @@ function renderAlertas(){
     const over=p.days.filter(d=>d.total>threshold);
     const avg=p.total/p.days.length;
     const pct=p.total>0?Math.round(p.adm/p.total*100):0;
-    const info=`<strong>${p.pname}</strong> — ${fmtH(p.total)} total · <strong>${pct}%</strong> actividades administrativas`;
+    const info=`<strong>${p.pname}</strong> — ${fmtH(p.total)} total · <strong>${pct}%</strong> actividades RRHS-GS`;
     if(over.length>0)html+=`<div class="alert-box al-danger">⚠️ <div>${info}<br><small>Superó el límite (${(threshold/3600000).toFixed(0)}h) en: ${over.map(d=>d.date+' ('+fmtH(d.total)+')').join(', ')}</small></div></div>`;
     else if(avg>threshold*0.8)html+=`<div class="alert-box al-warn">🕐 <div>${info}<br><small>Promedio diario ${fmtH(avg)} — cerca del límite</small></div></div>`;
     else html+=`<div class="alert-box al-ok">✓ <div>${info}</div></div>`;
@@ -541,7 +541,7 @@ function renderReporte(){
 
   document.getElementById('metrics').innerHTML=`
     <div class="metric"><div class="metric-label">Total registrado</div><div class="metric-val">${(total/3600000).toFixed(1)}h</div></div>
-    <div class="metric"><div class="metric-label">Administrativas</div><div class="metric-val" style="color:var(--amber)">${pctAdm}%</div></div>
+    <div class="metric"><div class="metric-label">RRHS-GS</div><div class="metric-val" style="color:var(--amber)">${pctAdm}%</div></div>
     <div class="metric"><div class="metric-label">Propias del cargo</div><div class="metric-val" style="color:var(--green)">${100-pctAdm}%</div></div>
     <div class="metric"><div class="metric-label">Mayor carga</div><div class="metric-val" style="font-size:15px;padding-top:4px">${topPName}</div></div>`;
 
@@ -553,7 +553,7 @@ function renderReporte(){
       <div class="bar-propia" style="flex:${propia||0.01}"></div>
     </div>
     <div class="legend-row">
-      <span><span class="legend-dot" style="background:var(--amber)"></span>Administrativas ${admH}h (${pctAdm}%)</span>
+      <span><span class="legend-dot" style="background:var(--amber)"></span>RRHS-GS ${admH}h (${pctAdm}%)</span>
       <span><span class="legend-dot" style="background:var(--green)"></span>Propias del cargo ${propH}h (${100-pctAdm}%)</span>
     </div>`;
 
@@ -580,7 +580,7 @@ function refreshCatSelectors(){
   const opts=categories.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
   ['new-cat','admin-new-cat'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
   const fc=document.getElementById('fc');
-  if(fc){const cur=fc.value;fc.innerHTML='<option value="all">Todas las categorías</option>'+categories.map(c=>`<option value="${c.id}">Solo ${c.name.toLowerCase()}</option>`).join('');fc.value=cur;}
+  if(fc){const cur=fc.value;fc.innerHTML='<option value="all">Todas las categorías</option>'+categories.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');fc.value=cur;}
 }
 function refreshAreaSelectors(){
   const opts=areas.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
@@ -797,15 +797,15 @@ function exportPDF(){
   <div class="sub">YM Seguridad Control y Diseño SAS · Generado el ${fecha}</div>
   <div class="kpi">
     <div class="kpi-card"><div class="kpi-label">Total registrado</div><div class="kpi-val">${(total/3600000).toFixed(1)}h</div></div>
-    <div class="kpi-card"><div class="kpi-label">Actividades administrativas</div><div class="kpi-val" style="color:#D97706">${pctAdm}%</div></div>
+    <div class="kpi-card"><div class="kpi-label">RRHS-GS</div><div class="kpi-val" style="color:#D97706">${pctAdm}%</div></div>
     <div class="kpi-card"><div class="kpi-label">Propias del cargo</div><div class="kpi-val" style="color:#059669">${100-pctAdm}%</div></div>
   </div>
   <div class="bar"><div class="bar-adm" style="flex:${adm||1}"></div><div class="bar-propia" style="flex:${propia||1}"></div></div>
   <div class="legend">
-    <span><span class="dot" style="background:#D97706"></span>Administrativas: ${(adm/3600000).toFixed(1)}h (${pctAdm}%)</span>
+    <span><span class="dot" style="background:#D97706"></span>RRHS-GS: ${(adm/3600000).toFixed(1)}h (${pctAdm}%)</span>
     <span><span class="dot" style="background:#059669"></span>Propias del cargo: ${(propia/3600000).toFixed(1)}h (${100-pctAdm}%)</span>
   </div>
-  <table><thead><tr><th>Persona</th><th>Área</th><th>Total horas</th><th>Horas administrativas</th><th>% Administrativo</th></tr></thead>
+  <table><thead><tr><th>Persona</th><th>Área</th><th>Total horas</th><th>Horas RRHS-GS</th><th>% RRHS-GS</th></tr></thead>
   <tbody>${filas}${sinDatos}</tbody></table>
   <div class="footer">Herramienta de seguimiento de tiempos · YM Seguridad Control y Diseño SAS</div>
   <script>window.onload=function(){window.print()}<\/script>
@@ -978,7 +978,7 @@ function renderAdminResumen(){
     return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--gray-100)">
       <span style="flex:1;font-size:13px;font-weight:500">${p.name}</span>
       <span style="font-size:12px;color:var(--gray-500)">${fmtH(p.total)} hoy</span>
-      <span class="cat-pill cat-adm">${pct}% adm.</span>
+      <span class="cat-pill cat-adm">${pct}% RRHS-GS</span>
     </div>`;}).join('');
 }
 
