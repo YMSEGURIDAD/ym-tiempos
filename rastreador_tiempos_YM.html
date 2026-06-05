@@ -9,7 +9,7 @@
 <style>
 :root{
   --blue:#1A56DB;--blue-light:#EBF2FF;--blue-mid:#3B82F6;
-  --amber:#D97706;--amber-light:#FEF3C7;
+  --amber:#DB06A2;--amber-light:#FDE8F7;
   --green:#059669;--green-light:#D1FAE5;
   --red:#DC2626;--red-light:#FEE2E2;
   --gray-50:#F9FAFB;--gray-100:#F3F4F6;--gray-200:#E5E7EB;
@@ -340,7 +340,7 @@ let areas=sload('ym_areas',[
 ]);
 
 let categories=sload('ym_cats',[
-  {id:'administrativa',name:'RRHS-GS',color:'#D97706',bg:'#FEF3C7'},
+  {id:'administrativa',name:'RRHS-GS',color:'#DB06A2',bg:'#FDE8F7'},
   {id:'propia',name:'Propia del cargo',color:'#059669',bg:'#D1FAE5'}
 ]);
 function saveCats(){ssave('ym_cats',categories)}
@@ -415,13 +415,48 @@ function catPill(cat){
 function renderCats(){
   const el=document.getElementById('cats-list');
   if(!el)return;
-  el.innerHTML=categories.map((c,i)=>`
-    <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:1.5px solid ${c.color}40;border-radius:var(--radius-sm);background:${c.bg}">
-      <span class="cat-pill" style="background:${c.bg};color:${c.color}">${c.name}</span>
-      <input type="text" value="${c.name}" style="width:150px;border-color:${c.color}50" oninput="categories[${i}].name=this.value;saveCats();renderCats()" onclick="event.stopPropagation()"/>
-      <input type="color" value="${c.color}" title="Color del texto" style="width:36px;height:32px;padding:2px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);cursor:pointer" onchange="categories[${i}].color=this.value;categories[${i}].bg=this.value+'18';saveCats();renderCats()" onclick="event.stopPropagation()"/>
+  el.innerHTML=`<div style="width:100%">
+    ${categories.map((c,i)=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid ${c.color}40;border-radius:var(--radius-sm);background:${c.bg};margin-bottom:8px;flex-wrap:wrap">
+        <span class="cat-pill" style="background:${c.bg};color:${c.color};min-width:80px;text-align:center">${c.name}</span>
+        <input type="text" value="${c.name}" placeholder="Nombre" style="flex:1;min-width:100px;border-color:${c.color}50"
+          oninput="categories[${i}].name=this.value;saveCats();renderCats()" onclick="event.stopPropagation()"/>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:11px;color:var(--gray-500)">Texto</span>
+          <input type="color" value="${c.color}" title="Color del texto"
+            style="width:34px;height:30px;padding:2px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);cursor:pointer"
+            onchange="categories[${i}].color=this.value;saveCats();renderCats()" onclick="event.stopPropagation()"/>
+          <span style="font-size:11px;color:var(--gray-500)">Fondo</span>
+          <input type="color" value="${c.bg.length>=7?c.bg.slice(0,7):'#F3F4F6'}" title="Color de fondo"
+            style="width:34px;height:30px;padding:2px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);cursor:pointer"
+            onchange="categories[${i}].bg=this.value+'30';saveCats();renderCats()" onclick="event.stopPropagation()"/>
+        </div>
+        ${categories.length>1?`<button class="btn icon" onclick="delCat(${i})" title="Eliminar" style="color:var(--red)"><svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>`:''}
+      </div>
+    `).join('')}
+    <div style="display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap">
+      <input type="text" id="new-cat-name" placeholder="Nueva categoría..." style="flex:1;min-width:140px"/>
+      <span style="font-size:11px;color:var(--gray-500)">Texto</span>
+      <input type="color" id="new-cat-color" value="#6B7280" style="width:34px;height:30px;padding:2px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);cursor:pointer"/>
+      <span style="font-size:11px;color:var(--gray-500)">Fondo</span>
+      <input type="color" id="new-cat-bg" value="#F3F4F6" style="width:34px;height:30px;padding:2px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);cursor:pointer"/>
+      <button class="btn go" onclick="addCat()">+ Agregar categoría</button>
     </div>
-  `).join('');
+  </div>`;
+}
+function addCat(){
+  const name=document.getElementById('new-cat-name').value.trim();
+  if(!name)return;
+  const color=document.getElementById('new-cat-color').value;
+  const bg=document.getElementById('new-cat-bg').value+'30';
+  const id='cat_'+Date.now();
+  categories.push({id,name,color,bg});
+  saveCats();refreshCatSelectors();renderCats();
+  document.getElementById('new-cat-name').value='';
+}
+function delCat(i){
+  if(!confirm('¿Eliminar la categoría "'+categories[i].name+'"?'))return;
+  categories.splice(i,1);saveCats();refreshCatSelectors();renderCats();
 }
 
 function areaPill(areaId){
@@ -782,7 +817,7 @@ function exportPDF(){
     .kpi-label{font-size:11px;color:#5A6A8A;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
     .kpi-val{font-size:26px;font-weight:700;color:#1A3A6B}
     .bar{height:18px;border-radius:9px;display:flex;overflow:hidden;margin:8px 0}
-    .bar-adm{background:#D97706}.bar-propia{background:#059669}
+    .bar-adm{background:#DB06A2}.bar-propia{background:#059669}
     .legend{display:flex;gap:16px;font-size:12px;color:#555;margin-bottom:24px}
     .dot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:5px}
     table{width:100%;border-collapse:collapse}
@@ -797,12 +832,12 @@ function exportPDF(){
   <div class="sub">YM Seguridad Control y Diseño SAS · Generado el ${fecha}</div>
   <div class="kpi">
     <div class="kpi-card"><div class="kpi-label">Total registrado</div><div class="kpi-val">${(total/3600000).toFixed(1)}h</div></div>
-    <div class="kpi-card"><div class="kpi-label">RRHS-GS</div><div class="kpi-val" style="color:#D97706">${pctAdm}%</div></div>
+    <div class="kpi-card"><div class="kpi-label">RRHS-GS</div><div class="kpi-val" style="color:#DB06A2">${pctAdm}%</div></div>
     <div class="kpi-card"><div class="kpi-label">Propias del cargo</div><div class="kpi-val" style="color:#059669">${100-pctAdm}%</div></div>
   </div>
   <div class="bar"><div class="bar-adm" style="flex:${adm||1}"></div><div class="bar-propia" style="flex:${propia||1}"></div></div>
   <div class="legend">
-    <span><span class="dot" style="background:#D97706"></span>RRHS-GS: ${(adm/3600000).toFixed(1)}h (${pctAdm}%)</span>
+    <span><span class="dot" style="background:#DB06A2"></span>RRHS-GS: ${(adm/3600000).toFixed(1)}h (${pctAdm}%)</span>
     <span><span class="dot" style="background:#059669"></span>Propias del cargo: ${(propia/3600000).toFixed(1)}h (${100-pctAdm}%)</span>
   </div>
   <table><thead><tr><th>Persona</th><th>Área</th><th>Total horas</th><th>Horas RRHS-GS</th><th>% RRHS-GS</th></tr></thead>
